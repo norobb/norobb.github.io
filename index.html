@@ -3,14 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Noah · norobb</title>
-  <meta name="description" content="Noah, a student in Hamburg who builds apps like Untis Neo and Dayflow. Plan something with me.">
+  <title>norobb</title>
+  <meta name="description" content="norobb, a student in Hamburg who builds apps like Untis Neo and Dayflow.">
   <link rel="preconnect" href="https://api.fontshare.com">
   <link href="https://api.fontshare.com/v2/css?f[]=chillax@500,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script>document.documentElement.classList.add('js')</script>
+  <script type="importmap">
+    { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    } }
+  </script>
 </head>
 <body>
+  <div class="progress" aria-hidden="true"></div>
+
   <header class="mast-nav">
     <div class="container mast-nav__inner">
       <a class="wordmark" href="#top">norobb</a>
@@ -26,127 +34,115 @@
   </header>
 
   <main id="top">
-    <section class="hero container" aria-labelledby="hero-title">
-      <div class="hero__text">
-        <h1 id="hero-title">Hi, I’m Noah.</h1>
-        <p class="lead">Student in Hamburg. I build apps that tame the school week.</p>
-      </div>
-
-      <div class="planner sheet" id="planner">
-        <div class="planner__head">
-          <h2 class="planner__title">My week</h2>
-          <p class="planner__note">Type a plan, then send it to me.</p>
+    <section class="hero" data-scroll="hero" aria-labelledby="hero-title">
+      <div class="container hero__inner">
+        <div class="hero__text">
+          <h1 id="hero-title" class="split">Hi, I’m Noah.</h1>
+          <p class="lead">Student in Hamburg. I build apps that tame the school week.</p>
+          <div class="actions">
+            <a class="btn btn--primary" href="#untis">See my apps</a>
+            <a class="text-link" href="#hi">Say hi on Discord</a>
+          </div>
         </div>
-
-        <div class="week-scroll">
-          <table class="week" aria-label="Noah's week">
-            <thead>
-              <tr>
-                <th scope="col"><span class="visually-hidden">Time</span></th>
-                <th scope="col">Mon</th><th scope="col">Tue</th><th scope="col">Wed</th><th scope="col">Thu</th><th scope="col">Fri</th><th scope="col">Sat</th><th scope="col">Sun</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr data-band="0"><th scope="row">Morning</th><td><span class="lesson">School</span></td><td><span class="lesson">School</span></td><td><span class="lesson">School</span></td><td><span class="lesson">School</span></td><td><span class="lesson">School</span></td><td></td><td></td></tr>
-              <tr data-band="1"><th scope="row">Afternoon</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-              <tr data-band="2"><th scope="row">Evening</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-              <tr data-band="3"><th scope="row">Late</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-            </tbody>
-          </table>
+        <div class="hero__stage">
+          <canvas id="scene" role="img" aria-label="Floating 3D shapes in yellow, coral, blue and mint. Drag to spin them, tap one to flick it."></canvas>
+          <p class="hero__hint">Drag to spin, tap to flick</p>
         </div>
-
-        <form class="plan-form" id="plan-form" autocomplete="off">
-          <label class="visually-hidden" for="plan-input">Your plan</label>
-          <input id="plan-input" name="plan" class="field" type="text" placeholder="minecraft friday 8pm" maxlength="60" required>
-          <button class="btn btn--primary" type="submit">Add to my week</button>
-        </form>
-
-        <div class="tries" aria-label="Try one">
-          <button class="pill" type="button" data-try="minecraft friday 8pm">minecraft friday 8pm</button>
-          <button class="pill" type="button" data-try="cinema sat 18:30">cinema sat 18:30</button>
-          <button class="pill" type="button" data-try="homework call tomorrow 5pm">homework call tomorrow 5pm</button>
-        </div>
-
-        <div class="send" id="send" hidden>
-          <p class="send__text" id="send-text"></p>
-          <button class="btn" type="button" id="send-btn">Copy and open Discord</button>
-        </div>
-        <p class="send__status" id="send-status" role="status"></p>
-        <noscript><p class="send__status">The planner needs JavaScript. Message me on Discord: norobb.</p></noscript>
       </div>
     </section>
 
-    <section class="project container" id="untis" aria-labelledby="untis-title">
-      <div class="project__text">
-        <h2 id="untis-title">Untis Neo</h2>
-        <p class="lead">My own WebUntis app for Android. Timetable, homework, exams, absences and a grade calculator, with no trackers and everything kept on your phone.</p>
-        <div class="screen-pills" role="group" aria-label="Show screen">
-          <button class="pill" type="button" aria-pressed="true" data-screen="images/untis-timetable.jpg" data-alt="Untis Neo timetable, light and dark mode side by side">Timetable</button>
-          <button class="pill" type="button" aria-pressed="false" data-screen="images/untis-exams.jpg" data-alt="Untis Neo upcoming exams with days left">Exams</button>
-          <button class="pill" type="button" aria-pressed="false" data-screen="images/untis-details.jpg" data-alt="Untis Neo lesson details with time, teacher and room">Lesson details</button>
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__row" data-dir="1">
+        <span>Untis Neo</span><i></i><span>Dayflow</span><i></i><span>Kotlin</span><i></i><span>Flutter</span><i></i><span>Hamburg</span><i></i><span>TypeScript</span><i></i><span>ESP32</span><i></i>
+      </div>
+      <div class="marquee__row marquee__row--alt" data-dir="-1">
+        <span>apps for school</span><i></i><span>side projects</span><i></i><span>late nights</span><i></i><span>Android</span><i></i><span>open source</span><i></i>
+      </div>
+    </div>
+
+    <section class="untis" id="untis" data-scroll="untis" aria-labelledby="untis-title">
+      <div class="untis__pin container">
+        <div class="untis__text">
+          <h2 id="untis-title">Untis Neo</h2>
+          <p class="lead">My own WebUntis app for Android. No trackers, everything stays on your phone.</p>
+          <ol class="steps">
+            <li class="is-active"><h3>Your week at a glance</h3><p>Every lesson, room and cancellation, light or dark.</p></li>
+            <li><h3>Exams with a countdown</h3><p>Synced from the class register, with the days left.</p></li>
+            <li><h3>Tap a lesson</h3><p>Time, teacher and room, or hide a subject for good.</p></li>
+          </ol>
+          <div class="actions">
+            <a class="btn" href="https://github.com/norobb/Untis_Neo/releases/latest">Get the APK</a>
+            <a class="text-link" href="https://github.com/norobb/Untis_Neo">Source code</a>
+          </div>
         </div>
-        <div class="actions">
-          <a class="btn" href="https://github.com/norobb/Untis_Neo/releases/latest">Get the APK</a>
-          <a class="text-link" href="https://github.com/norobb/Untis_Neo">Source code</a>
+        <div class="stage3d">
+          <div class="phone3d">
+            <div class="phone3d__body">
+              <img class="is-active" src="images/untis-timetable.jpg" alt="Untis Neo timetable, light and dark mode side by side" width="540" height="1200">
+              <img src="images/untis-exams.jpg" alt="Untis Neo upcoming exams with days left" width="540" height="1200" loading="lazy">
+              <img src="images/untis-details.jpg" alt="Untis Neo lesson details with time, teacher and room" width="540" height="1200" loading="lazy">
+            </div>
+            <span class="tag3d tag3d--a">Homework</span>
+            <span class="tag3d tag3d--b">Exams</span>
+            <span class="tag3d tag3d--c">Grades</span>
+            <span class="tag3d tag3d--d">Absences</span>
+          </div>
         </div>
       </div>
-      <figure class="phone sheet">
-        <div class="phone__img" data-slot="untis-screen" data-alt="Untis Neo screen">
-          <img id="untis-img" src="images/untis-timetable.jpg" alt="Untis Neo timetable, light and dark mode side by side" width="540" height="1200" loading="lazy">
-        </div>
-      </figure>
     </section>
 
-    <section data-tear class="dayflow band-ink" id="dayflow" aria-labelledby="dayflow-title">
+    <section data-tear class="dayflow band-ink" id="dayflow" data-scroll="dayflow" aria-labelledby="dayflow-title">
       <div class="container dayflow__inner">
         <div class="dayflow__text">
           <h2 id="dayflow-title">Dayflow</h2>
           <p class="lead">Drop in a chat message, a screenshot, a PDF or a voice note. Dayflow turns it into events, tasks and reminders, on the web and in an Android app.</p>
-          <p class="dayflow__aside">The planner up top is its tiny, much dumber cousin.</p>
           <div class="actions">
             <a class="btn" href="https://norobb.github.io/dayflow-assistant/">Try the demo</a>
             <a class="text-link text-link--on-ink" href="https://github.com/norobb/dayflow-assistant">Source code</a>
           </div>
         </div>
-        <figure class="shot sheet">
-          <div class="shot__img" data-slot="dayflow-screen" data-alt="Dayflow web demo">
+        <div class="dayflow__stage">
+          <figure class="shot" data-tilt>
             <img src="images/dayflow-demo.jpg" alt="The Dayflow web demo: a phone showing today's events next to the headline Your day. Your phone. One intelligent flow." width="1600" height="868" loading="lazy">
-          </div>
-        </figure>
+          </figure>
+          <span class="float-chip float-chip--a" aria-hidden="true">Message</span>
+          <span class="float-chip float-chip--b" aria-hidden="true">Screenshot</span>
+          <span class="float-chip float-chip--c" aria-hidden="true">Voice note</span>
+        </div>
       </div>
     </section>
 
     <section class="stack container" aria-labelledby="stack-title">
-      <h2 id="stack-title">What I build with</h2>
-      <div class="stack__body">
-        <div class="stack__pills" role="group" aria-label="Pick a language">
-          <button class="pill pill--big" type="button" aria-pressed="true" data-lang="kotlin">Kotlin</button>
-          <button class="pill pill--big" type="button" aria-pressed="false" data-lang="dart">Dart and Flutter</button>
-          <button class="pill pill--big" type="button" aria-pressed="false" data-lang="ts">TypeScript</button>
-          <button class="pill pill--big" type="button" aria-pressed="false" data-lang="python">Python</button>
-          <button class="pill pill--big" type="button" aria-pressed="false" data-lang="c">C and C++</button>
-          <button class="pill pill--big" type="button" aria-pressed="false" data-lang="swift">Swift</button>
-        </div>
-        <p class="stack__out" id="stack-out" aria-live="polite"><mark>Kotlin</mark> runs the Dayflow Android app and my native Untis app.</p>
+      <div class="stack__head">
+        <h2 id="stack-title">What I build with</h2>
+        <p class="stack__out" id="stack-out" aria-live="polite">Throw them around. Tap one to see where I used it.</p>
+      </div>
+      <div class="toybox" id="toybox">
+        <button class="toy toy--pear" type="button" data-lang="kotlin">Kotlin</button>
+        <button class="toy toy--coral" type="button" data-lang="dart">Flutter</button>
+        <button class="toy toy--blue" type="button" data-lang="ts">TypeScript</button>
+        <button class="toy toy--mint" type="button" data-lang="python">Python</button>
+        <button class="toy toy--ink" type="button" data-lang="c">C++</button>
+        <button class="toy toy--card" type="button" data-lang="swift">Swift</button>
       </div>
     </section>
 
-    <section class="about container" id="about" aria-labelledby="about-title">
+    <section class="about container" id="about" data-scroll="about" aria-labelledby="about-title">
       <h2 id="about-title">About me</h2>
-      <p class="about__statement">I’m Noah, a student in Hamburg who likes programming. Most of what I make starts with something that bugs me at school, like a clunky timetable app.</p>
+      <p class="about__statement words">I’m Noah, a student in Hamburg who likes programming. Most of what I make starts with something that bugs me at school, like a clunky timetable app.</p>
       <ul class="more">
-        <li><a href="https://github.com/norobb/esp32-security-key"><span class="more__name">ESP32 security key</span><span class="more__what">A FIDO and OpenPGP key on an ESP32</span></a></li>
-        <li><a href="https://github.com/norobb/bluey-by-riley-android"><span class="more__name">Googly Eyes</span><span class="more__what">A blueberry on your iPhone that points at your Mac</span></a></li>
-        <li><a href="https://github.com/norobb/webuntis-checker"><span class="more__name">WebUntis checker</span><span class="more__what">Pings my phone when the timetable changes</span></a></li>
+        <li><a href="https://github.com/norobb/esp32-security-key" data-tilt><span class="more__name">ESP32 security key</span><span class="more__what">A FIDO and OpenPGP key on an ESP32</span></a></li>
+        <li><a href="https://github.com/norobb/bluey-by-riley-android" data-tilt><span class="more__name">Googly Eyes</span><span class="more__what">A blueberry on your iPhone that points at your Mac</span></a></li>
+        <li><a href="https://github.com/norobb/webuntis-checker" data-tilt><span class="more__name">WebUntis checker</span><span class="more__what">Pings my phone when the timetable changes</span></a></li>
       </ul>
     </section>
 
-    <section data-tear class="close" aria-labelledby="close-title">
+    <section data-tear class="close" id="hi" data-scroll="close" aria-labelledby="close-title">
       <div class="container close__inner">
         <h2 id="close-title">Say hi on Discord</h2>
-        <p class="close__name">norobb</p>
+        <p class="close__name" aria-label="norobb"><span aria-hidden="true">n</span><span aria-hidden="true">o</span><span aria-hidden="true">r</span><span aria-hidden="true">o</span><span aria-hidden="true">b</span><span aria-hidden="true">b</span></p>
         <button class="btn btn--ink" type="button" id="copy-name">Copy my username</button>
-        <p class="send__status" id="copy-status" role="status"></p>
+        <p class="status" id="copy-status" role="status"></p>
       </div>
     </section>
   </main>
@@ -158,11 +154,12 @@
         <li><a href="https://github.com/norobb">GitHub</a></li>
         <li><a href="https://discord.com/channels/@me">Discord: norobb</a></li>
       </ul>
-      <p class="footer__legal">Made in Hamburg. Type: Chillax by Indian Type Foundry, via Fontshare.</p>
+      <p class="footer__legal">Made in Hamburg. Type: Chillax by Indian Type Foundry, via Fontshare. 3D: three.js. Physics: Matter.js.</p>
     </div>
   </footer>
 
-  <script src="plan.js"></script>
-  <script src="main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js" defer></script>
+  <script src="main.js" defer></script>
+  <script type="module" src="hero3d.js"></script>
 </body>
 </html>

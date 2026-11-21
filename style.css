@@ -257,6 +257,7 @@ mark { background: color-mix(in oklab, var(--color-accent) 75%, transparent); co
 
 /* ---------- about ---------- */
 .about { padding-block: var(--section-gap-s) var(--section-gap); }
+.friends { padding-block: 0 var(--section-gap); }
 .about__statement { margin-top: var(--space-xl); font-size: var(--text-3xl); line-height: 1.2; font-weight: 600; max-width: 30ch; letter-spacing: -0.015em; }
 .js .about__statement .w { color: var(--color-rule); transition: color var(--dur-short) var(--ease-out); }
 .js .about__statement .w.is-lit { color: var(--color-ink); }

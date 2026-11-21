@@ -306,7 +306,7 @@ const STACK = {
   kotlin: ['Kotlin', ' runs the Dayflow Android app and my native Untis app.'],
   dart: ['Flutter', ' and Dart are what Untis Neo is made of.'],
   ts: ['TypeScript', ' with React powers the Dayflow web demo.'],
-  python: ['Python', ' runs my WebUntis checker every five minutes.'],
+  js: ['JavaScript', ' is my Navigium helper, a userscript for the vocab trainer.'],
   c: ['C and C++', ' go on microcontrollers, like my ESP32 security key.'],
   swift: ['Swift', ' made Googly Eyes for iPhone and Mac.'],
 };

@@ -25,35 +25,55 @@ function start() {
     stage.classList.add('no-webgl');
     return;
   }
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+  renderer.toneMapping = THREE.NeutralToneMapping;
+  renderer.toneMappingExposure = 1.0;
 
   const scene = new THREE.Scene();
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  const key = new THREE.DirectionalLight(0xffffff, 1.4);
-  key.position.set(-4, 6, 6); // light from the top left, like the paper shadows
-  scene.add(key);
+  const key = new THREE.DirectionalLight(0xfff4e0, 1.6);
+  key.position.set(-4, 6, 6); // warm light from the top left, like the paper shadows
+  const rim = new THREE.DirectionalLight(0xcfe3ff, 1.1);
+  rim.position.set(5, -2, -4);
+  scene.add(key, rim, new THREE.HemisphereLight(0xfffaf0, 0xe8e2d0, 0.5));
 
   const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
   camera.position.set(0, 0, 13);
 
   const mat = (name, extra = {}) => new THREE.MeshPhysicalMaterial({
-    color: token(name), roughness: 0.32, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.12, ...extra,
+    color: token(name), roughness: 0.22, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.08,
+    sheen: 0.4, sheenRoughness: 0.5, sheenColor: new THREE.Color(0xffffff), ...extra,
   });
+  // pearl: a pale shell that shifts colour as it turns
+  const glass = mat('--color-sugar', { roughness: 0.12, iridescence: 1, iridescenceIOR: 1.6, iridescenceThicknessRange: [200, 600], sheen: 0 });
 
   const shapes = [
-    { geo: new RoundedBoxGeometry(1.9, 1.9, 1.9, 6, 0.34), m: mat('--color-accent'), p: [-1.2, 0.6, 0.4] },
-    { geo: new THREE.TorusGeometry(0.95, 0.38, 48, 128), m: mat('--color-accent-3'), p: [1.7, 1.5, -0.6] },
-    { geo: new THREE.SphereGeometry(0.95, 64, 64), m: mat('--color-accent-2'), p: [1.5, -1.3, 0.9] },
-    { geo: new THREE.CapsuleGeometry(0.5, 1.3, 16, 48), m: mat('--color-mint'), p: [-2.4, -1.6, -0.3] },
-    { geo: new RoundedBoxGeometry(1, 1, 1, 5, 0.2), m: mat('--color-ink', { roughness: 0.25 }), p: [0.2, -2.2, -1.2] },
-    { geo: new THREE.IcosahedronGeometry(0.75, 0), m: mat('--color-accent-3', { flatShading: true }), p: [-2.7, 1.9, -1.4] },
-    { geo: new THREE.TorusKnotGeometry(0.5, 0.17, 160, 24), m: mat('--color-accent'), p: [0.4, 2.6, -1.8] },
-    { geo: new THREE.SphereGeometry(0.42, 48, 48), m: mat('--color-card', { roughness: 0.4 }), p: [2.9, 0.1, -1.6] },
-    { geo: new THREE.ConeGeometry(0.6, 1.2, 48), m: mat('--color-mint'), p: [-0.4, -0.6, 2.2] },
+    { geo: new RoundedBoxGeometry(2.1, 2.1, 2.1, 10, 0.45), m: mat('--color-accent'), p: [-0.9, 0.3, 0] },
+    { geo: new THREE.TorusGeometry(1.0, 0.4, 64, 160), m: mat('--color-accent-3', { iridescence: 0.5, iridescenceIOR: 1.4 }), p: [1.9, 1.5, -0.8] },
+    { geo: new THREE.SphereGeometry(1.05, 96, 96), m: glass, p: [1.4, -1.25, 1.2] },
+    { geo: new THREE.CapsuleGeometry(0.52, 1.4, 24, 64), m: mat('--color-mint'), p: [-2.6, -1.7, -0.4] },
+    { geo: new THREE.SphereGeometry(0.62, 96, 96), m: mat('--color-accent-2', { roughness: 0.15 }), p: [-2.5, 1.9, -1.2] },
+    { geo: new RoundedBoxGeometry(0.95, 0.95, 0.95, 8, 0.22), m: mat('--color-ink', { roughness: 0.3, sheen: 0 }), p: [0.4, -2.4, -1.0] },
+    { geo: new THREE.TorusGeometry(0.42, 0.16, 48, 96), m: mat('--color-accent'), p: [0.3, 2.5, -1.6] },
   ];
+
+  // soft contact shadow: a blurred dark ellipse under the cluster
+  const sh = document.createElement('canvas');
+  sh.width = sh.height = 256;
+  const sctx = sh.getContext('2d');
+  const grad = sctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+  grad.addColorStop(0, 'rgba(30,32,40,0.35)');
+  grad.addColorStop(1, 'rgba(30,32,40,0)');
+  sctx.fillStyle = grad;
+  sctx.fillRect(0, 0, 256, 256);
+  const shadow = new THREE.Mesh(
+    new THREE.PlaneGeometry(7, 5),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(sh), transparent: true, depthWrite: false }),
+  );
+  shadow.rotation.x = -Math.PI / 2;
+  shadow.position.y = -3.1;
+  scene.add(shadow);
 
   const group = new THREE.Group();
   scene.add(group);
@@ -141,14 +161,15 @@ function start() {
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) tick(); }).observe(stage);
 
   const clock = new THREE.Clock();
-  let raf = 0;
+  let raf = 0, sScroll = 0;
   function tick() {
     cancelAnimationFrame(raf);
     if (!visible) return;
     raf = requestAnimationFrame(tick);
     const dt = Math.min(clock.getDelta(), 0.05);
     const t = clock.elapsedTime;
-    const scroll = Math.min(window.scrollY / window.innerHeight, 1.4);
+    sScroll += (Math.min(window.scrollY / window.innerHeight, 1.4) - sScroll) * (1 - Math.pow(0.002, dt));
+    const scroll = sScroll;
 
     if (!drag) {
       // inertia settles back to a slow idle spin
@@ -165,6 +186,8 @@ function start() {
     group.rotation.y = rotY + look.x * 0.25 + scroll * 1.6;
     group.rotation.x = rotX + look.y * 0.18 + scroll * 0.5;
     group.position.y = scroll * 1.2;
+    shadow.position.y = -3.1 + scroll * 1.2;
+    shadow.material.opacity = 1 - Math.min(scroll, 1);
 
     const spread = 1 + scroll * 0.7;
     for (const m of meshes) {
@@ -178,8 +201,8 @@ function start() {
       u.kick.multiplyScalar(0.96);
       // springy pop on tap, a soft swell on hover
       u.pop *= 0.9;
-      const target = 1 + (m === hover ? 0.08 : 0) + Math.sin(u.pop * Math.PI) * 0.25;
-      m.scale.setScalar(m.scale.x + (target - m.scale.x) * 0.2);
+      const target = 1 + (m === hover ? 0.08 : 0) + Math.sin(u.pop * Math.PI) * 0.18;
+      m.scale.setScalar(m.scale.x + (target - m.scale.x) * (1 - Math.pow(0.0001, dt)));
     }
     renderer.render(scene, camera);
   }

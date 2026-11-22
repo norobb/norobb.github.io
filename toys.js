@@ -90,91 +90,7 @@ function pill(ctx, text, x, y, size, bg, fg) {
   ctx.fillStyle = fg; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, x, y + 1);
 }
 
-/* ---------- 1: Kody Runner, a remake of the 404 game on kode.diy ---------- */
-function runner() {
-  const BG = '#DED7CD', INK = '#404040', SOFT = '#beb7ad';
-  let W, H, ground, u, hi = 0;
-  const g = {
-    size(w, h) { W = w; H = h; ground = h * 0.78; u = h / 64; },
-    reset() {
-      g.p = { x: W * 0.1, y: ground, vy: 0, w: 9 * u, h: 11 * u };
-      g.obs = []; g.speed = W * 0.42; g.score = 0; g.next = 0.8; g.dist = 0;
-    },
-    step(dt, inp) {
-      if (!run(dt, inp)) return;
-      const p = g.p, onGround = p.y >= ground;
-      const duck = inp.duck && onGround;
-      p.h = (duck ? 6 : 11) * u; p.w = (duck ? 12 : 9) * u;
-      if (onGround && (inp.tap || inp.held) && !inp.duck) p.vy = -H * 1.75;
-      p.vy += H * (inp.duck ? 11 : 5) * dt;
-      p.y = Math.min(ground, p.y + p.vy * dt);
-      if (p.y >= ground) p.vy = 0;
-
-      g.speed += W * 0.012 * dt;
-      g.dist += g.speed * dt;
-      g.score += dt * 10;
-      g.next -= dt;
-      if (g.next <= 0) {
-        const fly = g.score > 40 && Math.random() < 0.3;
-        const n = fly ? 1 : Math.random() < 0.3 ? 2 : 1;
-        for (let k = 0; k < n; k++) {
-          const w = (fly ? 9 : rand(4, 6)) * u, h = (fly ? 5 : rand(8, 13)) * u;
-          g.obs.push({ x: W + k * w * 1.4, y: fly ? ground - 15 * u : ground - h, w, h, fly });
-        }
-        g.next = rand(0.75, 1.6) * (W * 0.42) / g.speed + 0.25;
-      }
-      for (const o of g.obs) o.x -= g.speed * dt;
-      g.obs = g.obs.filter((o) => o.x + o.w > -20);
-      const box = { x: p.x + u, y: p.y - p.h + u, w: p.w - 2 * u, h: p.h - 2 * u };
-      if (g.obs.some((o) => hits(box, { x: o.x + u * 0.5, y: o.y + u * 0.5, w: o.w - u, h: o.h - u }))) {
-        g.state = 'over'; g.t = 0; hi = Math.max(hi, Math.floor(g.score));
-      }
-    },
-    draw(ctx) {
-      ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = INK;
-      ctx.fillRect(0, ground, W, Math.max(1, u * 0.6));
-      for (let k = 0; k < 40; k++) {
-        const gx = ((k * 97 - g.dist) % W + W) % W;
-        ctx.fillRect(gx, ground + u * (2 + (k % 3) * 2), u * (1 + (k % 2)), u * 0.6);
-      }
-      for (const o of g.obs) {
-        if (o.fly) {
-          const flap = Math.floor(g.dist / 40) % 2;
-          ctx.fillRect(o.x + 2 * u, o.y + 2 * u, o.w - 4 * u, 2 * u);
-          ctx.fillRect(o.x, o.y + (flap ? 0 : 3 * u), 3 * u, 2 * u);
-          ctx.fillRect(o.x + o.w - 3 * u, o.y + (flap ? 0 : 3 * u), 3 * u, 2 * u);
-        } else {
-          ctx.fillRect(o.x, o.y, o.w, o.h);
-          ctx.fillStyle = BG; ctx.fillRect(o.x + u, o.y + u, o.w - 2 * u, u); ctx.fillStyle = INK;
-        }
-      }
-      // Kody: a little pocket device on legs
-      const p = g.p, top = p.y - p.h;
-      ctx.beginPath(); ctx.roundRect(p.x, top, p.w, p.h - 2 * u, 2 * u); ctx.fill();
-      ctx.fillStyle = SOFT; ctx.beginPath(); ctx.roundRect(p.x + 1.5 * u, top + 1.5 * u, p.w - 3 * u, p.h - 6 * u, u); ctx.fill();
-      ctx.fillStyle = INK;
-      const blink = Math.floor(g.dist / 25) % 30 === 0;
-      ctx.fillRect(p.x + p.w * 0.38, top + 3 * u, u * 1.2, blink ? u * 0.4 : u * 1.6);
-      ctx.fillRect(p.x + p.w * 0.6, top + 3 * u, u * 1.2, blink ? u * 0.4 : u * 1.6);
-      const step = p.y < ground ? 0 : Math.floor(g.dist / 30) % 2;
-      ctx.fillRect(p.x + 2 * u, p.y - 2 * u, 1.5 * u, step ? 2 * u : 1 * u);
-      ctx.fillRect(p.x + p.w - 3.5 * u, p.y - 2 * u, 1.5 * u, step ? 1 * u : 2 * u);
-
-      ctx.font = `600 ${Math.max(12, 4 * u)}px "Geist Mono", ui-monospace, monospace`;
-      ctx.textAlign = 'right'; ctx.textBaseline = 'top';
-      const pad = (n) => String(Math.floor(n)).padStart(5, '0');
-      ctx.fillText(`${hi ? `HI ${pad(hi)}  ` : ''}${pad(g.score)}`, W - 64, 5 * u);
-      const s = Math.max(13, 3.6 * u);
-      if (g.state === 'ready') pill(ctx, 'Press space or tap to start', W / 2, H * 0.3, s, SOFT, INK);
-      if (g.state === 'over') pill(ctx, 'Game over · tap to retry', W / 2, H * 0.3, s, SOFT, INK);
-    },
-  };
-  const run = states(g);
-  return g;
-}
-
-/* ---------- 2: a flappy bird inside the Untis phone ---------- */
+/* ---------- a flappy bird inside the Untis phone ---------- */
 function flappy() {
   let W, H, best = 0;
   const g = {
@@ -234,7 +150,7 @@ function flappy() {
   return g;
 }
 
-/* ---------- 3: a tiny geometry dash, full screen ---------- */
+/* ---------- a tiny geometry dash, full screen ---------- */
 function dash() {
   let W, H, s, groundY, attempt = 0, best = 0;
   // level chunks in cube units: [dx, kind, height]; kinds: ^ spike, # block
@@ -353,12 +269,23 @@ function dash() {
 // toys lined up A to Z (main.js fires this)
 const toybox = $('#toybox');
 toybox?.addEventListener('abc', () => {
+  if (toybox.querySelector('.egg')) return;
+  const back = document.activeElement;
+  const wrap = document.createElement('div');
+  wrap.className = 'egg egg--kody';
+  wrap.setAttribute('role', 'dialog');
+  wrap.setAttribute('aria-label', 'Kody Runner');
+  wrap.innerHTML = '<iframe src="kody-runner/index.html" title="Kody Runner"></iframe>'
+    + '<button type="button" class="egg__x" aria-label="Close">×</button>'
+    + '<p class="egg__credit">Kody Runner is the 404 game by <a href="https://kode.diy/dewu">Kode Dot (kode.diy)</a>, used with permission. All credit to them.</p>';
+  const frame = wrap.querySelector('iframe');
+  const close = () => { wrap.remove(); toybox.classList.remove('is-egg'); back?.focus?.({ preventScroll: true }); };
+  const esc = (e) => { if (e.key === 'Escape') close(); };
+  wrap.addEventListener('keydown', esc);
+  frame.addEventListener('load', () => { frame.contentWindow.addEventListener('keydown', esc); frame.contentWindow.focus(); });
+  wrap.querySelector('.egg__x').addEventListener('click', close);
   toybox.classList.add('is-egg');
-  arcade(toybox, runner(), {
-    label: 'Kody Runner',
-    credit: 'Kody Runner is the 404 game by <a href="https://kode.diy/dewu">Kode Dot (kode.diy)</a>. My little remake.',
-    onClose: () => toybox.classList.remove('is-egg'),
-  });
+  toybox.append(wrap);
 });
 
 // three quick taps on the phone screen

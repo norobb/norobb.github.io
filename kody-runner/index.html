@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kody Runner</title>
+<link rel="icon" href="data:,">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #DED7CD;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .stage { position: relative; width: min(94vw, 1050px); }
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background: #DED7CD;
+    touch-action: none;
+  }
+  .pill {
+    position: absolute;
+    left: 50%;
+    top: 15%;
+    transform: translateX(-50%);
+    background: #beb7ad;
+    color: #404040;
+    padding: 0.38em 1.05em;
+    border-radius: 0.6em;
+    font-size: clamp(12px, 1.9vw, 20px);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    user-select: none;
+    -webkit-user-select: none;
+    pointer-events: none;
+  }
+  .hidden { display: none; }
+  .hint {
+    color: #8f887d;
+    font-size: 13px;
+    margin-top: 12px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <canvas id="game" width="420" height="160"></canvas>
+  <div id="pill" class="pill">Press space to start</div>
+</div>
+<div id="hint" class="hint">Space / &#8593; jump &middot; &#8595; duck &middot; M mute</div>
+
+<script src="core.js"></script>
+<script>
+"use strict";
+(function () {
+  var C = KodyCore.CONSTANTS;
+
+  // ---------------------------------------------------------------- manifest
+  // Inlined from sprites/manifest.json (fetch() fails under file://).
+  var MANIFEST = {
+    "meta": { "kodyBottomRow": 39 },
+    "sprites": {
+      "idle": { "file": "idle.png", "w": 40, "h": 42 },
+      "blink": { "file": "blink.png", "w": 40, "h": 42 },
+      "look-left": { "file": "look-left.png", "w": 40, "h": 42 },
+      "look-right": { "file": "look-right.png", "w": 40, "h": 42 },
+      "run-a": { "file": "run-a.png", "w": 40, "h": 42 },
+      "run-b": { "file": "run-b.png", "w": 40, "h": 42 },
+      "jump": { "file": "jump.png", "w": 40, "h": 42 },
+      "duck-a": { "file": "duck-a.png", "w": 40, "h": 42 },
+      "duck-b": { "file": "duck-b.png", "w": 40, "h": 42 },
+      "dizzy": { "file": "dizzy.png", "w": 40, "h": 42 },
+      "cheer": { "file": "cheer.png", "w": 40, "h": 42 },
+      "in-wheel": { "file": "in-wheel.png", "w": 40, "h": 42 },
+      "in-wheel-blink": { "file": "in-wheel-blink.png", "w": 40, "h": 42 },
+      "wheel-a": { "file": "wheel-a.png", "w": 46, "h": 46 },
+      "wheel-b": { "file": "wheel-b.png", "w": 46, "h": 46 },
+      "wheel-c": { "file": "wheel-c.png", "w": 46, "h": 46 },
+      "cactus-small-a": { "file": "cactus-small-a.png", "w": 16, "h": 24 },
+      "cactus-small-b": { "file": "cactus-small-b.png", "w": 16, "h": 24 },
+      "cactus-tall-a": { "file": "cactus-tall-a.png", "w": 20, "h": 36 },
+      "cactus-tall-b": { "file": "cactus-tall-b.png", "w": 20, "h": 36 },
+      "cactus-cluster-a": { "file": "cactus-cluster-a.png", "w": 34, "h": 24 },
+      "cactus-cluster-b": { "file": "cactus-cluster-b.png", "w": 34, "h": 24 },
+      "tumbleweed-a": { "file": "tumbleweed-a.png", "w": 16, "h": 16 },
+      "tumbleweed-b": { "file": "tumbleweed-b.png", "w": 16, "h": 16 },
+      "tumbleweed-c": { "file": "tumbleweed-c.png", "w": 16, "h": 16 },
+      "tumbleweed-d": { "file": "tumbleweed-d.png", "w": 16, "h": 16 },
+      "bird-a": { "file": "bird-a.png", "w": 20, "h": 12 },
+      "bird-b": { "file": "bird-b.png", "w": 20, "h": 12 },
+      "cloud-1": { "file": "cloud-1.png", "w": 22, "h": 9 },
+      "cloud-2": { "file": "cloud-2.png", "w": 15, "h": 7 },
+      "cloud-3": { "file": "cloud-3.png", "w": 27, "h": 10 },
+      "notch-1": { "file": "notch-1.png", "w": 7, "h": 3 },
+      "notch-2": { "file": "notch-2.png", "w": 7, "h": 3 },
+      "pebble-1": { "file": "pebble-1.png", "w": 3, "h": 1 },
+      "pebble-2": { "file": "pebble-2.png", "w": 2, "h": 1 },
+      "pebble-3": { "file": "pebble-3.png", "w": 2, "h": 2 },
+      "puff-a": { "file": "puff-a.png", "w": 5, "h": 5 },
+      "puff-b": { "file": "puff-b.png", "w": 7, "h": 7 }
+    }
+  };
+
+  var INK = "#404040";
+  var BG = "#DED7CD";
+
+  // ---------------------------------------------------------------- storage
+  var HI_KEY = "kody-runner-hi";
+  var MUTE_KEY = "kody-runner-muted";
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  var muted = lsGet(MUTE_KEY) === "1";
+
+  // ---------------------------------------------------------------- sprites
+  var sprites = {};
+  function loadSprites() {
+    var names = Object.keys(MANIFEST.sprites);
+    return Promise.all(names.map(function (name) {
+      return new Promise(function (resolve) {
+        var img = new Image();
+        img.onload = resolve;
+        img.onerror = resolve; // missing art: skip drawing, never hang
+        img.src = "sprites/" + MANIFEST.sprites[name].file;
+        sprites[name] = img;
+      });
+    }));
+  }
+
+  var canvas = document.getElementById("game");
+  var ctx = canvas.getContext("2d");
+  var pill = document.getElementById("pill");
+
+  // Touch-first devices get tap copy (tap already jumps via pointerdown).
+  var TOUCH = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+  if (TOUCH) {
+    document.getElementById("hint").textContent = "Tap to jump · hold to jump higher";
+  }
+
+  function drawSprite(name, x, y, w, h) {
+    var img = sprites[name];
+    if (!img || !img.complete || !img.naturalWidth) return;
+    if (w === undefined) { w = img.naturalWidth; h = img.naturalHeight; }
+    ctx.drawImage(img, Math.round(x), Math.round(y), w, h);
+  }
+
+  // ---------------------------------------------------------------- sim
+  var state = KodyCore.createGame({
+    rng: function () { return Math.random(); },
+    hi: parseInt(lsGet(HI_KEY) || "0", 10) || 0,
+  });
+
+  var rmQuery = window.matchMedia ? matchMedia("(prefers-reduced-motion: reduce)") : null;
+  function reducedMotion() { return !!(rmQuery && rmQuery.matches); }
+
+  // ---------------------------------------------------------------- audio
+  var actx = null;
+  function ensureAudio() {
+    if (!actx) {
+      try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+    }
+    if (actx && actx.state === "suspended") actx.resume();
+  }
+  function tone(freq, dur, delay, slideTo) {
+    if (muted || !actx) return;
+    var t0 = actx.currentTime + (delay || 0);
+    var osc = actx.createOscillator();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(freq, t0);
+    if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+    var g = actx.createGain();
+    g.gain.setValueAtTime(0.045, t0);
+    g.gain.exponentialRampToValueAtTime(0.0008, t0 + dur);
+    osc.connect(g);
+    g.connect(actx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  }
+  function sfxJump() { tone(660, 0.06); }
+  function sfxMilestone() { tone(880, 0.07); tone(880, 0.07, 0.11); }
+  function sfxDeath() { tone(220, 0.2, 0, 110); }
+
+  // ---------------------------------------------------------------- shell world
+  var groundScroll = 0;      // world-speed ground layer (notches + pebbles)
+  var groundScrollSlow = 0;  // sparse 0.6x pebble layer
+  var STRIP = 840;           // repeating ground strip length
+
+  // Deterministic decorative layout (stable across reloads).
+  var decoRng = KodyCore.makeRng(0xbeef);
+  function decoInt(min, max) { return KodyCore.randInt(decoRng, min, max); }
+
+  var notchItems = [];
+  (function () {
+    var x = decoInt(20, 90);
+    while (x < STRIP - 10) {
+      notchItems.push({ x: x, name: decoRng() < 0.5 ? "notch-1" : "notch-2" });
+      x += decoInt(90, 210);
+    }
+  })();
+  var PEBBLE_NAMES = ["pebble-1", "pebble-2", "pebble-3"];
+  var pebblesA = [];
+  for (var i = 0; i < 16; i++) {
+    pebblesA.push({ x: decoInt(0, STRIP - 1), y: decoInt(139, 143), name: PEBBLE_NAMES[decoInt(0, 2)] });
+  }
+  var pebblesB = [];
+  for (var j = 0; j < 7; j++) {
+    pebblesB.push({ x: decoInt(0, STRIP - 1), y: decoInt(145, 147), name: PEBBLE_NAMES[decoInt(0, 2)] });
+  }
+
+  // Clouds: shell-side ambience, drift at ~0.18x world speed + sine bob.
+  var CLOUD_NAMES = ["cloud-1", "cloud-2", "cloud-3"];
+  var clouds = [];
+  for (var ci = 0; ci < 4; ci++) {
+    clouds.push({
+      x: 30 + ci * 105 + decoInt(0, 50),
+      y: decoInt(16, 58),
+      name: CLOUD_NAMES[ci % 3],
+      phase: decoRng() * Math.PI * 2,
+    });
+  }
+
+  // Title scene: Kody idling inside the wheel; two flanking cacti like the mock.
+  var wheel = { cx: 210, visible: true, rolling: false, vx: 0, spinMs: 400 };
+  // Wheel art is native 46x46, drawn 1x (no scaling) so Kody nearly spans it.
+  var WHEEL_SIZE = MANIFEST.sprites["wheel-a"].h;
+  var WHEEL_INNER_FLOOR = 3; // px above ground line to the wheel's inner floor
+                             // (2px rim + curve; measured from wheel-a.png)
+  var TITLE_KODY_X = wheel.cx - 20; // Kody centered in the wheel
+  // Seat Kody's grounded paws (kodyBottomRow) on the wheel's inner floor.
+  var TITLE_KODY_Y = C.groundY - WHEEL_INNER_FLOOR - MANIFEST.meta.kodyBottomRow;
+  var slideOffset = 0;              // visual x offset while Kody slides to kodyX
+  var slideOffsetY = 0;             // visual y offset: wheel floor -> running lane
+  // The tall cactus doubles as the first live obstacle on start — keep it far
+  // right so the first-ever run gets a reaction window comparable to the
+  // natural spawn cadence (~2s), not a ~1.3s ambush.
+  var decoCacti = [
+    { type: "cactus-small", x: 58, swayPhase: 0.15 },
+    { type: "cactus-tall", x: 352, swayPhase: 0.65 },
+  ];
+
+  var puffs = [];            // {x, y, t0}
+  var footfalls = 0;
+  var lastRunFrame = -1;
+  var cheerUntil = 0;
+
+  // Title pose scheduler: base pose is "in-wheel" (paws braced on the wheel
+  // wall, per the mock); ambient life is blink only — the glance poses stand
+  // on four grounded paws and would visibly drop the braced pair.
+  var poseEndsAt = 0;
+  var nextPoseAt = performance.now() + 1800;
+
+  function addPuff() {
+    puffs.push({ x: C.kodyX - 3, y: C.groundY - 6, t0: performance.now() });
+  }
+
+  // ---------------------------------------------------------------- events
+  function handleEvent(ev) {
+    switch (ev) {
+      case "started":
+        wheel.rolling = true;
+        slideOffset = TITLE_KODY_X - C.kodyX;
+        // Kody was seated on the wheel floor; smooth the y drop to his lane
+        // over the same slide instead of teleporting down on the first frame.
+        slideOffsetY = TITLE_KODY_Y - C.kodyStandY;
+        // The cactus right of the wheel becomes the first REAL obstacle so
+        // the title scenery rolls seamlessly into the run.
+        decoCacti = decoCacti.filter(function (d) {
+          if (d.x > 150) {
+            KodyCore.spawnObstacle(state, d.type, { x: d.x });
+            return false;
+          }
+          return true;
+        });
+        break;
+      case "jumped": sfxJump(); break;
+      case "landed": addPuff(); break;
+      case "milestone":
+        sfxMilestone();
+        cheerUntil = performance.now() + 550;
+        break;
+      case "died":
+        sfxDeath();
+        lsSet(HI_KEY, String(state.hi));
+        break;
+      // "restarted", "dived", "spawned": nothing shell-side.
+    }
+  }
+
+  function doStep(input) {
+    KodyCore.step(state, input);
+    for (var i = 0; i < state.events.length; i++) handleEvent(state.events[i]);
+    if (state.mode === "playing") {
+      groundScroll += state.speed;
+      groundScrollSlow += state.speed * 0.6;
+      for (var d = 0; d < decoCacti.length; d++) decoCacti[d].x -= state.speed;
+      decoCacti = decoCacti.filter(function (c) { return c.x > -40; });
+    }
+    if (state.mode !== "gameover") {
+      for (var k = 0; k < clouds.length; k++) {
+        var cl = clouds[k];
+        cl.x -= state.speed * 0.18;
+        if (cl.x < -30) {
+          cl.x = C.W + 10 + Math.random() * 60;
+          cl.y = 16 + Math.random() * 44;
+        }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- input
+  var keyJump = false, ptrJump = false, duckHeld = false, jumpQueued = false;
+
+  window.addEventListener("keydown", function (e) {
+    if (e.code === "Space" || e.code === "ArrowUp" || e.code === "ArrowDown") e.preventDefault();
+    if (e.code === "Space" || e.code === "ArrowUp") {
+      if (!e.repeat) { jumpQueued = true; keyJump = true; }
+      ensureAudio();
+    } else if (e.code === "ArrowDown") {
+      duckHeld = true;
+      ensureAudio();
+    } else if (e.code === "KeyM" && !e.repeat) {
+      muted = !muted;
+      lsSet(MUTE_KEY, muted ? "1" : "0");
+    }
+  });
+  window.addEventListener("keyup", function (e) {
+    if (e.code === "Space" || e.code === "ArrowUp") keyJump = false;
+    else if (e.code === "ArrowDown") duckHeld = false;
+  });
+  canvas.addEventListener("pointerdown", function (e) {
+    e.preventDefault();
+    jumpQueued = true;
+    ptrJump = true;
+    ensureAudio();
+  });
+  window.addEventListener("pointerup", function () { ptrJump = false; });
+  window.addEventListener("pointercancel", function () { ptrJump = false; });
+
+  // ---------------------------------------------------------------- pixel font (3x5)
+  var FONT = {
+    "0": ["###", "#.#", "#.#", "#.#", "###"],
+    "1": [".#.", "##.", ".#.", ".#.", "###"],
+    "2": ["###", "..#", "###", "#..", "###"],
+    "3": ["###", "..#", ".##", "..#", "###"],
+    "4": ["#.#", "#.#", "###", "..#", "..#"],
+    "5": ["###", "#..", "###", "..#", "###"],
+    "6": ["###", "#..", "###", "#.#", "###"],
+    "7": ["###", "..#", "..#", "..#", "..#"],
+    "8": ["###", "#.#", "###", "#.#", "###"],
+    "9": ["###", "#.#", "###", "..#", "###"],
+    "H": ["#.#", "#.#", "###", "#.#", "#.#"],
+    "I": ["###", ".#.", ".#.", ".#.", "###"],
+    " ": ["...", "...", "...", "...", "..."],
+  };
+  var FONT_SCALE = 2;
+  function textWidth(str) { return str.length * 4 * FONT_SCALE - FONT_SCALE; }
+  function drawText(str, x, y) {
+    ctx.fillStyle = INK;
+    for (var i = 0; i < str.length; i++) {
+      var glyph = FONT[str[i]] || FONT[" "];
+      for (var r = 0; r < 5; r++) {
+        for (var c = 0; c < 3; c++) {
+          if (glyph[r][c] === "#") {
+            ctx.fillRect(x + i * 4 * FONT_SCALE + c * FONT_SCALE, y + r * FONT_SCALE, FONT_SCALE, FONT_SCALE);
+          }
+        }
+      }
+    }
+  }
+  function pad5(n) {
+    var s = String(Math.min(n, 99999));
+    while (s.length < 5) s = "0" + s;
+    return s;
+  }
+
+  // ---------------------------------------------------------------- render helpers
+  function drawGround(now) {
+    ctx.fillStyle = INK;
+    ctx.fillRect(0, C.groundY, C.W, 1);
+
+    // Notches composited ON the line: erase the line segment beneath so the
+    // zigzag reads as the line itself departing (bump ^ above, dip v below).
+    var off = groundScroll % STRIP;
+    for (var i = 0; i < notchItems.length; i++) {
+      var it = notchItems[i];
+      var sx = ((it.x - off) % STRIP + STRIP) % STRIP;
+      if (sx >= C.W && sx - STRIP < -7) continue;
+      if (sx >= C.W) sx -= STRIP;
+      sx = Math.round(sx);
+      ctx.fillStyle = BG;
+      ctx.fillRect(sx, C.groundY, 7, 1);
+      if (it.name === "notch-1") drawSprite("notch-1", sx, C.groundY - 2); // bottom row on the line
+      else drawSprite("notch-2", sx, C.groundY);                           // top row on the line
+    }
+
+    // Pebble scatter: main layer at world speed, sparse slower parallax layer.
+    for (var a = 0; a < pebblesA.length; a++) {
+      var pa = pebblesA[a];
+      var ax = ((pa.x - off) % STRIP + STRIP) % STRIP;
+      if (ax < C.W) drawSprite(pa.name, ax, pa.y);
+    }
+    var offB = groundScrollSlow % STRIP;
+    for (var b = 0; b < pebblesB.length; b++) {
+      var pb = pebblesB[b];
+      var bx = ((pb.x - offB) % STRIP + STRIP) % STRIP;
+      if (bx < C.W) drawSprite(pb.name, bx, pb.y);
+    }
+  }
+
+  function cactusFrame(type, swayPhase, now) {
+    if (reducedMotion()) return type + "-a";
+    var t = (now + swayPhase * 1200) % 1200;
+    return type + (t < 600 ? "-a" : "-b");
+  }
+
+  function drawObstacle(o, now) {
+    if (o.type === "bird") {
+      var bf = ((now / 160 + o.flapPhase * 2) % 2) < 1 ? "bird-a" : "bird-b";
+      var img = sprites[bf];
+      if (img && img.complete && img.naturalWidth) {
+        // Bird art faces right; flip so it flies toward Kody.
+        ctx.save();
+        ctx.translate(Math.round(o.x) + o.w, Math.round(o.y));
+        ctx.scale(-1, 1);
+        ctx.drawImage(img, 0, 0, o.w, o.h);
+        ctx.restore();
+      }
+    } else if (o.type === "tumbleweed") {
+      var idx = Math.floor(now / 90 + o.rollPhase * 4) % 4;
+      var tf = ["tumbleweed-a", "tumbleweed-b", "tumbleweed-c", "tumbleweed-d"][idx];
+      drawSprite(tf, o.x, o.y, o.w, o.h);
+    } else {
+      drawSprite(cactusFrame(o.type, o.swayPhase, now), o.x, o.y, o.w, o.h);
+    }
+  }
+
+  function drawDecoCacti(now) {
+    for (var i = 0; i < decoCacti.length; i++) {
+      var d = decoCacti[i];
+      var dims = C.sprites[d.type];
+      drawSprite(cactusFrame(d.type, d.swayPhase, now), d.x, C.groundY - dims.h, dims.w, dims.h);
+    }
+  }
+
+  function drawWheel(now) {
+    if (!wheel.visible) return;
+    var frame;
+    if (reducedMotion() && !wheel.rolling) frame = "wheel-a";
+    else frame = ["wheel-a", "wheel-b", "wheel-c"][Math.floor(now / wheel.spinMs) % 3];
+    // 46x46 art drawn 1x (no scaling), bottom resting on the ground line.
+    drawSprite(frame, wheel.cx - WHEEL_SIZE / 2, C.groundY - WHEEL_SIZE, WHEEL_SIZE, WHEEL_SIZE);
+  }
+
+  function titleKodyFrame(now) {
+    if (now >= nextPoseAt) {
+      poseEndsAt = now + 150;
+      nextPoseAt = poseEndsAt + 1400 + Math.random() * 2200;
+    }
+    // Blink with the wheel-braced eyes-closed pose (NOT plain "blink"): its
+    // paws stay braced on the wall, so the ambient blink never teleports them.
+    if (now < poseEndsAt) return "in-wheel-blink";
+    return "in-wheel";
+  }
+
+  function drawKody(now) {
+    if (state.mode === "title") {
+      // Seated in the wheel: braced paws on the wall, grounded pair on the
+      // wheel's inner floor (TITLE_KODY_Y), centered on the wheel.
+      drawSprite(titleKodyFrame(now), wheel.cx - 20, TITLE_KODY_Y);
+      return;
+    }
+    if (state.mode === "gameover") {
+      var shuffle = (Math.floor(now / 300) % 2) * 2 - 1; // subtle +-1px x-shuffle
+      drawSprite("dizzy", C.kodyX + shuffle, state.kody.y);
+      return;
+    }
+    // playing
+    var x = C.kodyX + Math.round(slideOffset);
+    var y = Math.round(state.kody.y + slideOffsetY);
+    var k = state.kody;
+    var interval = Math.max(70, 130 - state.speed * 8);
+    if (!k.onGround) {
+      drawSprite("jump", x, y);
+      return;
+    }
+    var frameIdx = Math.floor(now / interval);
+    if (k.ducking) {
+      drawSprite(frameIdx % 2 ? "duck-b" : "duck-a", x, y);
+      return;
+    }
+    if (frameIdx !== lastRunFrame) {
+      lastRunFrame = frameIdx;
+      footfalls++;
+      if (footfalls % 4 === 0) addPuff(); // dust every 4th footfall
+    }
+    if (now < cheerUntil) {
+      drawSprite("cheer", x, y);
+      return;
+    }
+    drawSprite(frameIdx % 2 ? "run-b" : "run-a", x, y);
+  }
+
+  function drawPuffs(now) {
+    puffs = puffs.filter(function (p) { return now - p.t0 < 180; });
+    for (var i = 0; i < puffs.length; i++) {
+      var p = puffs[i];
+      var age = now - p.t0;
+      if (age < 90) drawSprite("puff-a", p.x, p.y);
+      else drawSprite("puff-b", p.x - 1, p.y - 1);
+    }
+  }
+
+  function drawScore() {
+    var str = (state.hi > 0 ? "HI " + pad5(state.hi) + " " : "") + pad5(state.score);
+    drawText(str, C.W - 6 - textWidth(str), 6);
+  }
+
+  var pillMode = ""; // avoid touching the DOM every frame
+  function updatePill() {
+    var want = state.mode === "title" ? "title" : state.mode === "gameover" ? "gameover" : "none";
+    if (want === pillMode) return;
+    pillMode = want;
+    if (want === "none") { pill.classList.add("hidden"); return; }
+    pill.textContent =
+      want === "title"
+        ? (TOUCH ? "Tap to start" : "Press space to start")
+        : (TOUCH ? "Game over — Tap to retry" : "Game over — Space to retry");
+    pill.classList.remove("hidden");
+  }
+
+  function render(now) {
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = BG;
+    ctx.fillRect(0, 0, C.W, C.H);
+
+    // clouds (with reduced-motion-gated 1px sine bob)
+    for (var i = 0; i < clouds.length; i++) {
+      var cl = clouds[i];
+      var bob = reducedMotion() ? 0 : Math.round(Math.sin(now / 900 + cl.phase));
+      drawSprite(cl.name, cl.x, cl.y + bob);
+    }
+
+    drawWheel(now);
+    drawGround(now);
+    drawDecoCacti(now);
+    for (var o = 0; o < state.obstacles.length; o++) drawObstacle(state.obstacles[o], now);
+    drawPuffs(now);
+    drawKody(now);
+    drawScore();
+    updatePill();
+  }
+
+  // ---------------------------------------------------------------- transitions
+  function updateTransitions(dt) {
+    if (slideOffset > 0) {
+      var next = Math.max(0, slideOffset - 0.32 * dt); // Kody slides to his lane
+      // y settles in lock-step with x over the same slide, then snaps to 0.
+      slideOffsetY = next > 0 ? slideOffsetY * (next / slideOffset) : 0;
+      slideOffset = next;
+    }
+    if (wheel.rolling) {
+      wheel.vx += 0.22 * (dt / C.stepMs);
+      wheel.cx += wheel.vx * (dt / C.stepMs);
+      wheel.spinMs = Math.max(60, wheel.spinMs - dt * 0.6);
+      if (wheel.cx - WHEEL_SIZE / 2 > C.W) { wheel.visible = false; wheel.rolling = false; }
+    }
+  }
+
+  // ---------------------------------------------------------------- main loop
+  var last = performance.now();
+  var acc = 0;
+  function frame(now) {
+    var dt = Math.min(now - last, C.maxFrameMs); // tab-switch spiral guard
+    last = now;
+    acc += dt;
+    while (acc >= C.stepMs) {
+      doStep({ jumpPressed: jumpQueued, jumpHeld: keyJump || ptrJump, duckHeld: duckHeld });
+      jumpQueued = false; // one-shot edge consumed by exactly one step
+      acc -= C.stepMs;
+    }
+    updateTransitions(dt);
+    render(now);
+    requestAnimationFrame(frame);
+  }
+
+  // ---------------------------------------------------------------- debug hook
+  window.__kody = {
+    state: state,
+    core: KodyCore,
+    forceSpawn: function (type, opts) { return KodyCore.spawnObstacle(state, type, opts); },
+    stepN: function (n, input) {
+      for (var i = 0; i < n; i++) doStep(input || {});
+      return state;
+    },
+  };
+
+  loadSprites().then(function () {
+    last = performance.now();
+    requestAnimationFrame(frame);
+  });
+})();
+</script>
+</body>
+</html>

@@ -8,6 +8,7 @@ Plain HTML, CSS and JavaScript, no build step. GitHub Pages serves the `main` br
 - `style.css`, `tokens.css`, `base.css`: styles (colours and fonts live in `tokens.css`)
 - `hero3d.js`: the three.js hero scene
 - `main.js`: scroll effects, marquee, physics toybox, tilt
+- `toys.js`: small interactive bits (runs after `main.js`)
 - `images/`: app screenshots
 
 Preview locally: `python3 -m http.server` and open http://localhost:8000

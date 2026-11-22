@@ -346,7 +346,11 @@ function physics() {
   });
   Composite.add(engine.world, bodies);
 
-  let held = null;
+  let held = null, touched = false, tick = 0;
+  // once the blocks have been moved and settle in A to Z order, eggs.js takes over the box
+  const az = toys.map((t) => t.textContent).sort((a, b) => a.localeCompare(b)).join();
+  const sorted = () => !held && bodies.every((b) => b.speed < 0.2)
+    && [...bodies].sort((a, b) => a.position.x - b.position.x).map((b) => b.el.textContent).join() === az;
   toys.forEach((el, i) => {
     el.addEventListener('pointerdown', (e) => {
       const r = toybox.getBoundingClientRect();
@@ -363,7 +367,7 @@ function physics() {
     });
     const drop = () => {
       if (!held || held.el !== el) return;
-      if (held.moved > 6) el.dataset.dragged = '1';
+      if (held.moved > 6) { el.dataset.dragged = '1'; touched = true; }
       el.classList.remove('is-held');
       held = null;
     };
@@ -390,6 +394,7 @@ function physics() {
       Body.setAngularVelocity(b, b.angularVelocity * 0.8);
     }
     Engine.update(engine, 1000 / 60);
+    if (touched && ++tick % 20 === 0 && sorted()) { touched = false; toybox.dispatchEvent(new Event('abc')); }
     for (const b of bodies) b.el.style.transform = `translate3d(${(b.position.x - b.w / 2).toFixed(1)}px, ${(b.position.y - b.h / 2).toFixed(1)}px, 0) rotate(${b.angle.toFixed(3)}rad)`;
   }
   loop();

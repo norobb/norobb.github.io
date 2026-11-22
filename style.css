@@ -326,3 +326,18 @@ mark { background: color-mix(in oklab, var(--color-accent) 75%, transparent); co
   .marquee__row { transform: none; }
   .close__name span { transform: none !important; opacity: 1 !important; }
 }
+
+/* ---------- small interactive bits ---------- */
+.stack__abc { margin-top: var(--space-xs); text-align: right; font-family: var(--font-outlier); font-size: 0.6875rem; letter-spacing: 0.3em; color: var(--color-muted); opacity: 0.55; }
+.toybox.is-egg .toy { visibility: hidden; }
+.egg { position: absolute; inset: 0; z-index: var(--z-raised); background: #DED7CD; border-radius: inherit; overflow: hidden; }
+.egg canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: pointer; }
+.egg canvas:focus-visible { outline-offset: -4px; }
+.egg__x { position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; border: 0; border-radius: var(--radius-pill); background: oklch(20% 0.014 255 / 0.12); color: inherit; font: 600 1.5rem/1 var(--font-body); cursor: pointer; }
+.egg__credit { position: absolute; left: 16px; right: 64px; bottom: 10px; font-size: var(--text-xs); color: #6b655c; }
+.egg__credit a { color: #404040; text-decoration: underline; }
+.egg--phone { background: #cfe4f5; }
+.egg--phone .egg__x { top: 18px; right: 50%; translate: 50% 0; width: 32px; height: 32px; font-size: 1.1rem; background: oklch(20% 0.014 255 / 0.3); color: #fff; }
+.egg--fixed { position: fixed; z-index: var(--z-modal); border-radius: 0; background: #1b1d24; }
+.egg--fixed .egg__x { top: 44px; background: oklch(100% 0 0 / 0.15); color: #fff; }
+.confetto { position: fixed; top: 0; z-index: var(--z-toast); pointer-events: none; }

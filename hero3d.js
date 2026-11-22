@@ -158,7 +158,8 @@ function start() {
 
   // ---- loop ----
   let visible = true;
-  new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) tick(); }).observe(stage);
+  // pause once most of the stage has scrolled away, so it doesn't compete with the marquee below
+  new IntersectionObserver(([e]) => { visible = e.intersectionRatio > 0.2; if (visible) tick(); }, { threshold: [0, 0.2, 0.25] }).observe(stage);
 
   const clock = new THREE.Clock();
   let raf = 0, sScroll = 0;

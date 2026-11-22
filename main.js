@@ -134,14 +134,14 @@ function frame(dt) {
     l.style.opacity = (0.15 + t * 0.85).toFixed(3);
   });
 
-  // marquee: steady drift, faster and skewed with scroll speed
+  // marquee: steady drift, faster with scroll speed
   const speed = 60 + Math.min(Math.abs(velocity), 80) * 10;
   for (const r of rows) {
     if (!r.third) continue;
     r.x -= r.dir * speed * dt;
     if (r.x <= -r.third) r.x += r.third;
     if (r.x > 0) r.x -= r.third;
-    r.row.style.transform = `translate3d(${r.x.toFixed(1)}px,0,0) skewX(${clamp(-velocity * 0.35, -10, 10).toFixed(2)}deg)`;
+    r.row.style.transform = `translate3d(${r.x.toFixed(1)}px,0,0)`; // no skew: changing it re-rasters the big glyphs every frame in Firefox
   }
 }
 

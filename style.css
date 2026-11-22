@@ -60,7 +60,7 @@ mark { background: color-mix(in oklab, var(--color-accent) 75%, transparent); co
 .nav-links a:hover { color: var(--color-accent-2); text-decoration: underline; }
 
 /* ---------- hero ---------- */
-.hero { --exit: 0; }
+.hero { --exit: 0; position: relative; overflow: hidden; touch-action: pan-y; } /* sideways swipes reach the shapes, up and down still scrolls */
 .hero__inner {
   display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: center;
   gap: var(--space-xl) var(--space-2xl);
@@ -75,11 +75,9 @@ mark { background: color-mix(in oklab, var(--color-accent) 75%, transparent); co
 @keyframes rise { from { opacity: 0; transform: translateY(0.6em) rotate(8deg); } to { opacity: 1; transform: none; } }
 
 .hero__stage { position: relative; height: min(78svh, 720px); min-height: 420px; }
-#scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: pan-y; border-radius: var(--radius-card); }
-#scene.is-dragging { cursor: grabbing; }
+#scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: calc(var(--z-raised) + 1); pointer-events: none; }
 .hero__hint { position: absolute; right: var(--space-md); bottom: var(--space-md); font-size: var(--text-sm); color: var(--color-muted); opacity: 0; transition: opacity var(--dur-long) var(--ease-out); }
 .is-live .hero__hint { opacity: 1; }
-.no-webgl { display: none; }
 
 /* ---------- marquee ---------- */
 .marquee { overflow: hidden; padding-block: var(--space-xl); background: var(--grain), var(--color-ink); color: var(--color-on-ink); rotate: -2deg; margin-inline: -2%; width: 104%; }

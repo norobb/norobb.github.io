@@ -277,7 +277,7 @@ toybox?.addEventListener('abc', () => {
   wrap.setAttribute('aria-label', 'Kody Runner');
   wrap.innerHTML = '<iframe src="kody-runner/index.html" title="Kody Runner"></iframe>'
     + '<button type="button" class="egg__x" aria-label="Close">×</button>'
-    + '<p class="egg__credit">Kody Runner is the 404 game by <a href="https://kode.diy/dewu">Kode Dot (kode.diy)</a>, used with permission. All credit to them.</p>';
+    + '<p class="egg__credit">Kody Runner is the 404 game by <a href="https://kode.diy/404">Kode Dot (kode.diy)</a>, used with permission. All credit to them. One of my favourite companies, <a href="https://kode.diy/">check out their work</a>!</p>';
   const frame = wrap.querySelector('iframe');
   const close = () => { wrap.remove(); toybox.classList.remove('is-egg'); back?.focus?.({ preventScroll: true }); };
   const esc = (e) => { if (e.key === 'Escape') close(); };

@@ -286,6 +286,7 @@ mark { background: color-mix(in oklab, var(--color-accent) 75%, transparent); co
 .close__inner::before { content: ""; position: absolute; top: -14px; left: 50%; width: 120px; height: 30px; translate: -50% 0; rotate: 3deg; background: oklch(96% 0.01 95 / 0.6); box-shadow: 0 1px 2px oklch(20% 0.014 255 / 0.12); }
 .close__name { display: flex; perspective: 900px; font-size: clamp(3.5rem, 12vw, 7rem); font-weight: 600; letter-spacing: var(--tracking-display); line-height: 0.95; min-width: 0; max-width: 100%; overflow-wrap: break-word; }
 .close__name span { display: inline-block; transform-origin: 50% 100%; }
+.close__inner .text-link { color: inherit; }
 
 /* ---------- footer (mast) ---------- */
 .footer { padding-block: var(--space-3xl) var(--space-xl); }
